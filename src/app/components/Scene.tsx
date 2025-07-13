@@ -7,8 +7,17 @@ import ChannelNode from './ChannelNode';
 export default function Scene() {
   return (
     <div id="canvas-container">
-        <Canvas>
-            <ambientLight></ambientLight>
+        <Canvas
+            style={{
+                position: 'fixed',   // so it sits on top
+                top: 0,
+                left: 0,
+                width: '100vw',      // full viewport width
+                height: '100vh',     // full viewport height
+                overflow: 'hidden',  // just in case
+            }}
+        >
+            <color attach="background" args={['black']}></color>
             <ChannelNode
                 channelName='test'
                 sphereGeometry={{
