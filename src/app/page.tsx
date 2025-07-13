@@ -1,8 +1,8 @@
 import Image from "next/image";
-import ChannelGraph from "./components/ChannelGraph";
+import Scene from "./components/Scene";
 
 export default function Home() {
   return (
-    <ChannelGraph></ChannelGraph>
+    <Scene></Scene>
   );
 }
