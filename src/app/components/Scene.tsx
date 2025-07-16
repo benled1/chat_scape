@@ -4,20 +4,18 @@ import * as THREE from 'three';
 import { createRoot } from 'react-dom/client';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
+import { Channel } from '../types';
 import ChannelNode from './ChannelNode';
 
-export default function Scene() {
+export interface SceneProps {
+    channels: Channel[]
+};
 
-    useEffect(() => {
-        const fetchChannels = async () => {
-            const response = await fetch("http://localhost:8000/channels");
-            const data = await response.json();
-            console.log(`Fetched data  = ${data}`);
-        }
-        fetchChannels();
-    }, []);
+
+export default function Scene(props: SceneProps) {
     return (
     <div id="canvas-container">
+
         <Canvas
             style={{
                 position: 'fixed',
@@ -33,23 +31,25 @@ export default function Scene() {
                 enablePan={true}
                 enableZoom={true}
                 enableRotate={true}
-                // minDistance={2}
-                // maxDistance={10}
             />
             <color attach="background" args={['black']}></color>
             <Suspense>
                 <ambientLight></ambientLight>
-                <ChannelNode
-                    channelName=''
-                    sphereGeometry={{
-                        radius: 1,
-                        widthSegments: 16,
-                        heightSegments: 16,
-                    }}
-                    position={new THREE.Vector3(1,1,1)}
-                    onFocus={()=>{}}
-                    onSelect={()=>{}}
-                ></ChannelNode>
+                {props.channels.map((currChannel: Channel) => (
+                    currChannel.metadata.data.length !== 0 &&
+                    <ChannelNode
+                        key={currChannel._id}
+                        channelData={currChannel}
+                        sphereGeometry={{
+                            radius: 1,
+                            widthSegments: 16,
+                            heightSegments: 16,
+                        }}
+                        position={new THREE.Vector3(Math.floor(Math.random()*6),Math.floor(Math.random()*100),Math.floor(Math.random()*6))}
+                        onFocus={()=>{}}
+                        onSelect={()=>{}}
+                    ></ChannelNode> 
+                ))}
             </Suspense>
         </Canvas>
     </div>
