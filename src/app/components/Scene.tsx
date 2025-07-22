@@ -11,11 +11,9 @@ export interface SceneProps {
     channels: Channel[]
 };
 
-
 export default function Scene(props: SceneProps) {
     return (
     <div id="canvas-container">
-
         <Canvas
             style={{
                 position: 'fixed',
@@ -36,7 +34,6 @@ export default function Scene(props: SceneProps) {
             <Suspense>
                 <ambientLight></ambientLight>
                 {props.channels.map((currChannel: Channel) => (
-                    currChannel.metadata.data.length !== 0 &&
                     <ChannelNode
                         key={currChannel._id}
                         channelData={currChannel}
