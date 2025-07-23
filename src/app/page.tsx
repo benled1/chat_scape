@@ -10,8 +10,7 @@ import { HomeSceneContext } from "./contexts";
 
 export default function Home() {
     const [channels, setChannels] = useState<Channel[]>([]);
-    const [isInfoPanelOpen, setIsInfoPanelOpen] = useState<boolean>(false);
-
+    const [selectedChannel, setSelectedChannel] = useState<string>("");
 
     useEffect(() => {
         const fetchChannels = async () => {
@@ -24,10 +23,15 @@ export default function Home() {
     
 
     return (
-      <HomeSceneContext.Provider value={{isInfoPanelOpen, setIsInfoPanelOpen}}>
+      <HomeSceneContext.Provider value={{selectedChannel, setSelectedChannel}}>
         <div className="relative w-screen h-screen overflow-hidden">
             <Scene channels={channels} />
-            <InfoPanel isOpen={isInfoPanelOpen} onClose={() => setIsInfoPanelOpen(false)} />
+            <div>
+              {
+              selectedChannel && 
+              <InfoPanel isOpen={selectedChannel} onClose={() => setSelectedChannel("")} channelData={channels.filter(channel => channel.channel==selectedChannel)[0]}/>
+              }
+            </div>
         </div>
       </HomeSceneContext.Provider>
     );

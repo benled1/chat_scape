@@ -6,6 +6,8 @@ import {Vector3, TextureLoader, SRGBColorSpace, Mesh} from 'three';
 import { useLoader, useFrame, useThree } from '@react-three/fiber'
 import { Decal } from '@react-three/drei';
 import { HomeSceneContext } from '../contexts';
+import { SelectionHelper } from 'three/examples/jsm/Addons.js';
+import { off } from 'process';
 
 export interface SphereGeometry {
     radius: number
@@ -24,7 +26,7 @@ export interface ChannelNodeProps {
 export default function ChannelNode(props: ChannelNodeProps) {
   const context = useContext(HomeSceneContext);
   if (!context) throw new Error("Must be used within HomeSceneContext.Provider");
-  const { isInfoPanelOpen, setIsInfoPanelOpen } = context;
+  const { selectedChannel, setSelectedChannel } = context;
 
   const [coordinates, setCoordinates] = useState<Coordinates[]>([{"_id": "0", "channel": "filler", "coords": [0,0,0]}]);
 
@@ -38,8 +40,22 @@ export default function ChannelNode(props: ChannelNodeProps) {
   const { camera, gl } = useThree()
 
   useFrame(() => {
-    if (decalRef.current) {
-      decalRef.current.lookAt(camera.position)
+    if (!decalRef.current) return;
+
+    decalRef.current.lookAt(camera.position)
+
+
+    if (props.channelData.channel == selectedChannel) {
+      const targetPos = decalRef.current.position.clone();
+      const zoomDistance = 5;
+      const backDir = camera.position.clone().sub(targetPos).normalize();
+      const idealPos = targetPos.clone().add(backDir.multiplyScalar(zoomDistance));
+
+      // const leftOffset = new Vector3(-2,0,0);
+      // idealPos.add(leftOffset);
+      camera.position.lerp(idealPos, 0.1);
+      camera.lookAt(targetPos)
+      camera.lookAt(decalRef.current.position);
     }
   })
 
@@ -66,7 +82,12 @@ export default function ChannelNode(props: ChannelNodeProps) {
       }}
       onClick={(e) => {
         e.stopPropagation();
-        setIsInfoPanelOpen(!isInfoPanelOpen);
+        if (selectedChannel == props.channelData.channel) {
+          setSelectedChannel("");
+        } else {
+          setSelectedChannel(props.channelData.channel);
+          console.log(`Selected ${props.channelData.channel}`);
+        }
       }}
     >
       <sphereGeometry
