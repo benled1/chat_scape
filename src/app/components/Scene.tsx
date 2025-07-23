@@ -1,21 +1,20 @@
 "use client"
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useContext } from 'react';
 import * as THREE from 'three';
 import { createRoot } from 'react-dom/client';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { Channel } from '../types';
 import ChannelNode from './ChannelNode';
+import { HomeSceneContext } from '../contexts';
 
 export interface SceneProps {
     channels: Channel[]
 };
 
-
 export default function Scene(props: SceneProps) {
     return (
     <div id="canvas-container">
-
         <Canvas
             style={{
                 position: 'fixed',
@@ -36,7 +35,6 @@ export default function Scene(props: SceneProps) {
             <Suspense>
                 <ambientLight></ambientLight>
                 {props.channels.map((currChannel: Channel) => (
-                    currChannel.metadata.data.length !== 0 &&
                     <ChannelNode
                         key={currChannel._id}
                         channelData={currChannel}
