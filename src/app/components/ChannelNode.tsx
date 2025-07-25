@@ -50,6 +50,8 @@ export default function ChannelNode(props: ChannelNodeProps) {
       const backDir = camera.position.clone().sub(targetPos).normalize();
       const idealPos = targetPos.clone().add(backDir.multiplyScalar(zoomDistance));
 
+      // const leftOffset = new Vector3(-2,0,0);
+      // idealPos.add(leftOffset);
       camera.position.lerp(idealPos, 0.1);
       camera.lookAt(targetPos)
       camera.lookAt(decalRef.current.position);
@@ -63,16 +65,6 @@ export default function ChannelNode(props: ChannelNodeProps) {
         setCoordinates(data as Coordinates[]);
       }
       fetchChannels();
-  }, []);
-  useEffect(() => {
-    const handleWheel = (event: WheelEvent) => {
-      setSelectedChannel("");
-    };
-
-    window.addEventListener('wheel', handleWheel);
-    return () => {
-      window.removeEventListener('wheel', handleWheel);
-    };
   }, []);
 
   return (
