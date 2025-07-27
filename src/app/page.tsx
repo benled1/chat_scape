@@ -56,11 +56,11 @@ export default function Home() {
   return (
     <HomeSceneContext.Provider value={{ selectedChannel, setSelectedChannel }}>
       <div className="relative w-screen h-screen overflow-hidden">
-        {/* Search Bar */}
+        {/* Dark Mode Search Bar */}
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-1/3 z-10">
           <input
             type="text"
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring"
+            className="w-full px-3 py-2 bg-gray-800 text-white placeholder-gray-400 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-white"
             placeholder="Search channels..."
             value={searchText}
             onChange={handleInput}
@@ -69,11 +69,11 @@ export default function Home() {
             onBlur={() => setTimeout(() => setIsOpen(false), 150)}
           />
           {isOpen && results.length > 0 && (
-            <ul className="bg-white border rounded-b-lg max-h-60 overflow-auto shadow-lg">
+            <ul className="bg-gray-800 border border-gray-700 rounded-b-lg max-h-60 overflow-auto shadow-lg">
               {results.slice(0, 10).map((ch) => (
                 <li
                   key={ch._id}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  className="px-3 py-2 hover:bg-gray-700 cursor-pointer text-white"
                   onMouseDown={() => handleSelect(ch.channel)}
                 >
                   {ch.channel}
@@ -82,7 +82,11 @@ export default function Home() {
             </ul>
           )}
         </div>
-        <Scene channels={channels} /> </div>
+
+        {/* 3D Scene */}
+        <Scene channels={channels} />
+
+      </div>
     </HomeSceneContext.Provider>
   );
 }
