@@ -122,18 +122,22 @@ export default function ChannelNode(props: ChannelNodeProps) {
         </Decal>
       </mesh>
 
-      {selectedChannel === props.channelData.channel && (
-        <Html
+      {selectedChannel === props.channelData.channel && ( <Html
           position={[0, labelOffset, 0]}
           center
-          style={{ pointerEvents: "none" }} >
+          style={{ pointerEvents: 'none' }}
+        >
           <div
             style={{
-              background: "rgba(255,255,255,0.8)",
-              padding: "2px 6px",
-              borderRadius: "4px",
-              fontSize: "0.75rem",
-              whiteSpace: "nowrap",
+              color: '#fff',
+              fontWeight: 'bold',
+              fontSize: '4rem',
+              background: 'transparent',
+              padding: 0,
+              whiteSpace: 'nowrap',
+
+              textShadow: '0 0 4px rgba(0,0,0,0.8)',  
+              WebkitTextStroke: '0.5px rgba(0,0,0,0.8)',
             }}
           >
             {props.channelData.channel}
