@@ -26,12 +26,12 @@ export default function Home() {
       <HomeSceneContext.Provider value={{selectedChannel, setSelectedChannel}}>
         <div className="relative w-screen h-screen overflow-hidden">
             <Scene channels={channels} />
-            <div>
+            {/* <div>
               {
               selectedChannel && 
               <InfoPanel isOpen={selectedChannel} onClose={() => setSelectedChannel("")} channelData={channels.filter(channel => channel.channel==selectedChannel)[0]}/>
               }
-            </div>
+            </div> */}
         </div>
       </HomeSceneContext.Provider>
     );
