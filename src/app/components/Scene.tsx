@@ -31,7 +31,7 @@ export default function Scene(props: SceneProps) {
                 enableZoom={true}
                 enableRotate={true}
             />
-            <color attach="background" args={['black']}></color>
+            <color attach="background" args={['rgb(22, 16, 36)']}></color>
             <Suspense>
                 <ambientLight></ambientLight>
                 {props.channels.map((currChannel: Channel) => (

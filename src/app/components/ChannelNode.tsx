@@ -1,114 +1,149 @@
 "use client"
-import { Coordinates } from '../types';
-import { Channel } from '../types';
-import { useRef, useEffect, useState, useContext } from 'react';
-import {Vector3, TextureLoader, SRGBColorSpace, Mesh} from 'three';
+
+import { Html } from '@react-three/drei'
+import { Coordinates } from '../types'
+import { Channel } from '../types'
+import { useRef, useEffect, useState, useContext } from 'react'
+import { Vector3, TextureLoader, SRGBColorSpace, Mesh, Texture } from 'three'
 import { useLoader, useFrame, useThree } from '@react-three/fiber'
-import { Decal } from '@react-three/drei';
-import { HomeSceneContext } from '../contexts';
-import { SelectionHelper } from 'three/examples/jsm/Addons.js';
-import { off } from 'process';
+import { Decal } from '@react-three/drei'
+import { HomeSceneContext } from '../contexts'
 
 export interface SphereGeometry {
-    radius: number
-    widthSegments: number
-    heightSegments: number
+  radius: number
+  widthSegments: number
+  heightSegments: number
 }
 
 export interface ChannelNodeProps {
-    sphereGeometry: SphereGeometry
-    position: Vector3
-    onFocus: () => void; // when the user click the node when not in focus (should target the camera)
-    onSelect: () => void; // when the user clicks the node after in focus (should open info panel)
-    channelData: Channel;
+  sphereGeometry: SphereGeometry
+  position: Vector3
+  onFocus: () => void
+  onSelect: () => void
+  channelData: Channel
 }
 
 export default function ChannelNode(props: ChannelNodeProps) {
-  const context = useContext(HomeSceneContext);
-  if (!context) throw new Error("Must be used within HomeSceneContext.Provider");
-  const { selectedChannel, setSelectedChannel } = context;
+  const { selectedChannel, setSelectedChannel } = useContext(HomeSceneContext)!
+  const [coordinates, setCoordinates] = useState<Coordinates[]>([
+    { _id: "0", channel: "filler", coords: [0, 0, 0] }
+  ])
 
-  const [coordinates, setCoordinates] = useState<Coordinates[]>([{"_id": "0", "channel": "filler", "coords": [0,0,0]}]);
-
-  var texture = useLoader(TextureLoader, "/profile_images/no-texture.png");
-  if (props.channelData.metadata["data"].length !== 0) {
-    console.log(`drawing node for ${props.channelData.channel} with profile_image = ${props.channelData.metadata["data"][0]["profile_image_url"]}`)
-    texture = useLoader(TextureLoader, props.channelData.metadata["data"][0]["profile_image_url"] as string);
+  let texture: Texture = useLoader(TextureLoader, "/profile_images/no-texture.png") as Texture;
+  if (props.channelData.metadata.data.length) {
+    texture = useLoader(
+      TextureLoader,
+      props.channelData.metadata.data[0].profile_image_url
+    ) as Texture;
   }
   texture.colorSpace = SRGBColorSpace
+
   const decalRef = useRef<Mesh>(null!)
   const { camera, gl } = useThree()
 
+  useEffect(() => {
+    fetch(
+      `http://localhost:8000/coordinates?channel_name=${props.channelData.channel}&month=2025-07`
+    )
+      .then((r) => r.json())
+      .then((data: Coordinates[]) => setCoordinates(data))
+  }, [props.channelData.channel])
+
+  useEffect(() => {
+    const onWheel = () => setSelectedChannel("")
+    window.addEventListener("wheel", onWheel)
+    return () => window.removeEventListener("wheel", onWheel)
+  }, [])
+
+  const coordScale = 30
+  const [x, y, z] = coordinates[0]?.coords ?? [0, 0, 0]
+  const worldPos = new Vector3(x * coordScale, y * coordScale, z * coordScale)
+  const labelOffset = props.sphereGeometry.radius + 0.2
+
   useFrame(() => {
-    if (!decalRef.current) return;
+    if (!decalRef.current) return
 
     decalRef.current.lookAt(camera.position)
 
-    if (props.channelData.channel == selectedChannel) {
-      const targetPos = decalRef.current.position.clone();
-      const zoomDistance = 5;
-      const backDir = camera.position.clone().sub(targetPos).normalize();
-      const idealPos = targetPos.clone().add(backDir.multiplyScalar(zoomDistance));
-
-      // const leftOffset = new Vector3(-2,0,0);
-      // idealPos.add(leftOffset);
-      camera.position.lerp(idealPos, 0.1);
-      camera.lookAt(targetPos)
-      camera.lookAt(decalRef.current.position);
+    if (props.channelData.channel === selectedChannel) {
+      const backDir = camera.position.clone().sub(worldPos).normalize()
+      const idealPos = worldPos.clone().add(backDir.multiplyScalar(5))
+      camera.position.lerp(idealPos, 0.1)
+      camera.lookAt(worldPos)
     }
   })
 
-  useEffect(() => {
-      const fetchChannels = async () => {
-        const response = await fetch(`http://localhost:8000/coordinates?channel_name=${props.channelData.channel}&month=2025-07`);
-        const data = await response.json();
-        setCoordinates(data as Coordinates[]);
-      }
-      fetchChannels();
-  }, []);
-
   return (
-    <mesh  
-      ref={decalRef} 
-      position={[coordinates[0].coords[0]*30, coordinates[0].coords[1]*30, coordinates[0].coords[2]*30]}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        gl.domElement.style.cursor = 'pointer';
-      }}
-      onPointerOut={(e) => {
-        e.stopPropagation();
-        gl.domElement.style.cursor = 'auto';
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        if (selectedChannel == props.channelData.channel) {
-          setSelectedChannel("");
-        } else {
-          setSelectedChannel(props.channelData.channel);
-          console.log(`Selected ${props.channelData.channel}`);
-        }
-      }}
-    >
-      <sphereGeometry
-        args={[
-          props.sphereGeometry.radius,
-          props.sphereGeometry.widthSegments,
-          props.sphereGeometry.heightSegments,
-        ]}
-      />
-      <meshStandardMaterial color="white" emissive="white" emissiveIntensity={0.05} />
-
-      <Decal
-        position={[0, 0, props.sphereGeometry.radius]}
-        rotation={[0, 0, 0]}
-        scale={2}
+    <group position={worldPos}>
+      <mesh
+        ref={decalRef}
+        position={[0, 0, 0]}
+        onPointerOver={(e) => {
+          e.stopPropagation()
+          gl.domElement.style.cursor = "pointer"
+        }}
+        onPointerOut={(e) => {
+          e.stopPropagation()
+          gl.domElement.style.cursor = "auto"
+        }}
+        onClick={(e) => {
+          e.stopPropagation()
+          if (selectedChannel == props.channelData.channel) {
+            setSelectedChannel("");
+          } else {
+            setSelectedChannel(props.channelData.channel);
+            console.log(`Selected ${props.channelData.channel}`);
+          }
+        }}
       >
-        <meshBasicMaterial
-          map={texture}
-          polygonOffset
-          polygonOffsetFactor={-1}
+        <sphereGeometry
+          args={[
+            props.sphereGeometry.radius,
+            props.sphereGeometry.widthSegments,
+            props.sphereGeometry.heightSegments,
+          ]}
         />
-      </Decal>
-    </mesh>
+        <meshStandardMaterial
+          color="white"
+          emissive="white"
+          emissiveIntensity={0.05}
+        />
+
+        <Decal
+          position={[0, 0, props.sphereGeometry.radius]}
+          rotation={[0, 0, 0]}
+          scale={2}
+        >
+          <meshBasicMaterial
+            map={texture}
+            polygonOffset
+            polygonOffsetFactor={-1}
+          />
+        </Decal>
+      </mesh>
+
+      {selectedChannel === props.channelData.channel && ( <Html
+          position={[0, labelOffset, 0]}
+          center
+          style={{ pointerEvents: 'none' }}
+        >
+          <div
+            style={{
+              color: '#fff',
+              fontWeight: 'bold',
+              fontSize: '4rem',
+              background: 'transparent',
+              padding: 0,
+              whiteSpace: 'nowrap',
+
+              textShadow: '0 0 4px rgba(0,0,0,0.8)',  
+              WebkitTextStroke: '0.5px rgba(0,0,0,0.8)',
+            }}
+          >
+            {props.channelData.channel}
+          </div>
+        </Html>
+      )}
+    </group>
   )
 }
